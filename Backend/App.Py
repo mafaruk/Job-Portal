@@ -43,7 +43,7 @@ UPLOAD_FOLDER = 'uploads/profile_pics'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB limit
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-DATABASE_URL = f"postgresql://{db_user}:{db_password}@localhost:5432/job-portal"
+DATABASE_URL = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -74,9 +74,11 @@ def create_data_table():
         location VARCHAR(100) UNIQUE  
     );
     """
-    
     cur.execute(create_table_query)
     conn.commit()
+
+    
+
 
     cur.close()
     conn.close()
@@ -1227,5 +1229,5 @@ if __name__ == "__main__":
     create_users_table()
     create_jobs_table()
     create_info_table()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
 
