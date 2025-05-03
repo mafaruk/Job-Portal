@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend/resume-analyzer
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: job-portal
+      DB_USER: your database username
+      DB_PASSWORD: your database password
+      JWT_SECRET_KEY: your_secret_key_here
+      RESET_SECRET_KEY: your_reset_password_secret_key_here
+      sender_email: your email
+      sender_password: your app password
+      GOOGLE_GENAI_API_KEY: your gemini API key
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: job-portal
+      POSTGRES_USER: your database username
+      POSTGRES_PASSWORD: your database password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
