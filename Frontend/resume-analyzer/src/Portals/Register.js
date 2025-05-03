@@ -29,7 +29,7 @@ const RegisterPage = () => {
 
     try {
       setLoading(true); // Start loader
-      const response = await axios.post('http://127.0.0.1:5000/api/send-otp', { email, role });  // backend endpoint
+      const response = await axios.post('http://localhost:5000/api/send-otp', { email, role });  // backend endpoint
       console.error('response', response);
       setMessage(response.data.message);
       setServerOtp(response.data.otp);  // Normally OTP should be sent via email, but storing here temporarily for demo
@@ -56,7 +56,7 @@ const RegisterPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/register', { username, email, password, role, org, fname, lname });
+      const response = await axios.post('http://localhost:5000/api/register', { username, email, password, role, org, fname, lname });
       alert('Account created successfully!');
      navigate('/'); // Redirect after success
     } catch (error) {
