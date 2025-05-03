@@ -17,14 +17,21 @@ from flask_jwt_extended import JWTManager, create_access_token
 from datetime import timedelta
 from google import genai
 import fitz
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # Your secret key for encoding and decoding the JWT token
-app.config['JWT_SECRET_KEY'] = 'your_secret_key_here'
-app.config['RESET_SECRET_KEY'] = 'reset-password-secret-key'
+app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
+app.config['RESET_SECRET_KEY'] = os.getenv("RESET_SECRET_KEY")
 
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+sender_email = os.getenv("sender_email")
+sender_password = os.getenv("sender_password")
+google_genai_api_key = os.getenv("GOOGLE_GENAI_API_KEY")
 
 # Optionally, specify where the token will be stored (default is Authorization header)
 app.config['JWT_TOKEN_LOCATION'] = ['headers']  # You can add 'cookies' if using cookies to store the token
@@ -36,7 +43,7 @@ UPLOAD_FOLDER = 'uploads/profile_pics'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB limit
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/job-portal"
+DATABASE_URL = f"postgresql://{db_user}:{db_password}@localhost:5432/job-portal"
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -213,8 +220,6 @@ def send_otp():
             conn.rollback()
             return jsonify({"message": "Email already registered"}), 400
     # Send OTP via email
-    sender_email = 'bagwannihal4@gmail.com'
-    sender_password = ''
     otp = str(random.randint(100000, 999999))
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
@@ -349,8 +354,6 @@ def verify_token(token):
     except jwt.InvalidTokenError:
         return None
 
-app.config['RESET_SECRET_KEY'] = 'reset-password-secret-key'
-
 @app.route('/request-reset', methods=['POST'])
 def request_reset():
     
@@ -372,14 +375,11 @@ def request_reset():
             token = create_access_token(identity=email, additional_claims={'role': role, 'email':email}, expires_delta=timedelta(hours=12))
 
             reset_link = f"http://localhost:3000/reset-password?token={token}&role={role}"
-            print(f"[Simulated Email] Password reset link: {reset_link}")
-            sender_email = 'bagwannihal4@gmail.com'
-            sender_password = ''
             try:
                 with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
                     smtp.starttls()
                     smtp.login(sender_email, sender_password)
-                    message = f'Dear {email},\n\nA request has been made to reset your password. If you made this request, please{reset_link} to complete the password reset.'
+                    message = f'Dear {email},\n\nA request has been made to reset your password. If you made this request, please {reset_link} to complete the password reset.'
                     smtp.sendmail(sender_email, email, message)
                 return jsonify({'message': 'Please check your email for the password reset link. It will remain valid for only 3 minutes.'}), 200
             except Exception as e:
@@ -487,8 +487,6 @@ def get_user():
 
     cur.execute(query, (user_id,))  
     user = cur.fetchone()
-    print(user)
-    
     try:
         if role=="candidate":
             username, email, hashed_password, role, data_id, f_name, l_name= user
@@ -1171,7 +1169,7 @@ def analyze_resume():
     try:
         doc = fitz.open(stream=file.read(), filetype="pdf")
         resume_text = "\n".join([page.get_text() for page in doc])
-        client = genai.Client(api_key="")
+        client = genai.Client(api_key=google_genai_api_key)
         response = client.models.generate_content(
             model="gemini-2.0-flash", contents = f"""
 Analyze this resume and extract the following in JSON. Format of JSON is given below. 
