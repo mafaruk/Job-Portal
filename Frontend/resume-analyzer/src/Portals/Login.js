@@ -87,6 +87,11 @@ const Login = () => {
                 </Button>
               </Form>
             </Col>
+            <div className="text-center mt-2 mb-2">
+                <small>
+                 Forgot Password? <a style={{color:'blue', textDecoration: "underline" }} onClick={()=>{navigate('/reset-request')}}>Click here to Reset</a>
+                </small>
+              </div>
           </Row>
         </Container>
       )}

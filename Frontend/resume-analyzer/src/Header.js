@@ -24,12 +24,6 @@ const Header = (props) => {
   };
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated]);
-
   const navigateToProfile = () => {
     navigate('/profile');  // Navigate to the profile page
   };

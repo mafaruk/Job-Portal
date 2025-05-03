@@ -15,6 +15,8 @@ import PostJob from "./Portals/PostJob.js";
 import CandidateJobsApplied from "./Portals/CandidateAppliedJobs.js";
 import HRPortal from "./Portals/HRPostedJobs.js";
 import ResumeAnalyzer from "./Portals/ResumeAnalyzer.js";
+import RequestReset from "./Portals/RequestReset.js";
+import ResetPassword from "./Portals/ResetPass.js";
 
 function App() {
 
@@ -51,7 +53,7 @@ function App() {
                     {/* Search Job Button */}
                     {isHR && username ? (
                       <>
-                        <FaPlus className="mt-4" size={100} style={{ color: "#007bff", marginBottom: '50px' }} />
+                        <FaPlus className="mt-5" size={100} style={{ color: "#007bff", marginBottom: '50px' }} />
                         <Button
                           variant="primary"
                           className="mt-3 w-100"
@@ -61,10 +63,10 @@ function App() {
                         </Button>
                       </>) : (
                       <>
-                        <FaSearch className="mt-4" size={100} style={{ color: "#007bff", marginBottom: '50px' }} />
+                        <FaSearch className="mt-5" size={100} style={{ color: "#007bff", marginBottom: '50px' }} />
                         <Button
                           variant="primary"
-                          className="mt-3 w-100"
+                          className="mt-2 w-100"
                           onClick={() => navigate('/jobs')}
                         >
                           Search Job
@@ -116,11 +118,13 @@ function App() {
         <Route path="/login" element={(<Login />)} />
         <Route path="/create-account" element={(<RegisterPage />)} />
         <Route path="/profile" element={(<ProfilePage />)} />
-        <Route path="/jobs" element={(<JobsPage />)} /> {/* Jobs Page Route */}
-        <Route path="/post-job" element={(<PostJob />)} /> {/* Jobs Page Route */}
-        <Route path="/applied-jobs" element={(<CandidateJobsApplied />)} /> {/* Jobs Page Route */}
-        <Route path="/posted-jobs" element={(<HRPortal />)} /> {/* Jobs Page Route */}
-        <Route path="/resume-analyze" element={(<ResumeAnalyzer />)} /> {/* Jobs Page Route */}
+        <Route path="/jobs" element={(<JobsPage />)} /> 
+        <Route path="/post-job" element={(<PostJob />)} /> 
+        <Route path="/applied-jobs" element={(<CandidateJobsApplied />)} /> 
+        <Route path="/posted-jobs" element={(<HRPortal />)} /> 
+        <Route path="/resume-analyze" element={(<ResumeAnalyzer />)} /> 
+        <Route path="/reset-request" element={(<RequestReset />)} /> 
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </Container>
   );

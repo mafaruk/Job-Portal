@@ -65,7 +65,7 @@ const DropResume = () => {
 
   return (
     <div>
-      <h4  className="text-center mb-4">Analyze Resume</h4>
+      <h4  className="text-center mb-5">Analyze Resume</h4>
       <Card>
         <Card.Body>
         <div

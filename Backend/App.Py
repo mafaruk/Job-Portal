@@ -12,17 +12,19 @@ from werkzeug.utils import secure_filename
 import os
 from passlib.context import CryptContext
 import re
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import decode_token, jwt_required, get_jwt_identity, get_jwt
 from flask_jwt_extended import JWTManager, create_access_token
 from datetime import timedelta
 from google import genai
 import fitz
-# PyMuPDF
+
 app = Flask(__name__)
 CORS(app)
 
 # Your secret key for encoding and decoding the JWT token
 app.config['JWT_SECRET_KEY'] = 'your_secret_key_here'
+app.config['RESET_SECRET_KEY'] = 'reset-password-secret-key'
+
 
 # Optionally, specify where the token will be stored (default is Authorization header)
 app.config['JWT_TOKEN_LOCATION'] = ['headers']  # You can add 'cookies' if using cookies to store the token
@@ -34,7 +36,7 @@ UPLOAD_FOLDER = 'uploads/profile_pics'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB limit
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/todo"
+DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/job-portal"
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -211,8 +213,8 @@ def send_otp():
             conn.rollback()
             return jsonify({"message": "Email already registered"}), 400
     # Send OTP via email
-    sender_email = "bagwannihal4@gmail.com"
-    sender_password = "dcoa nenk ycog ckbq"
+    sender_email = 'bagwannihal4@gmail.com'
+    sender_password = ''
     otp = str(random.randint(100000, 999999))
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
@@ -346,6 +348,87 @@ def verify_token(token):
         return None
     except jwt.InvalidTokenError:
         return None
+
+app.config['RESET_SECRET_KEY'] = 'reset-password-secret-key'
+
+@app.route('/request-reset', methods=['POST'])
+def request_reset():
+    
+    conn = get_db_connection()
+    cur = conn.cursor() 
+    data = request.json
+    email = data['email']
+    role = data['role']
+    database = "user_candidate"
+    try :# Hash the password for security
+        if role=="candidate":
+            database = 'user_candidate'
+        elif role=="HR":
+            database = 'user_hr'
+        query = f"SELECT email, role FROM {database} WHERE email = %s"
+        cur.execute(query, (email,))  
+        user = cur.fetchone()
+        if user:
+            token = create_access_token(identity=email, additional_claims={'role': role, 'email':email}, expires_delta=timedelta(hours=12))
+
+            reset_link = f"http://localhost:3000/reset-password?token={token}&role={role}"
+            print(f"[Simulated Email] Password reset link: {reset_link}")
+            sender_email = 'bagwannihal4@gmail.com'
+            sender_password = ''
+            try:
+                with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                    smtp.starttls()
+                    smtp.login(sender_email, sender_password)
+                    message = f'Dear {email},\n\nA request has been made to reset your password. If you made this request, please{reset_link} to complete the password reset.'
+                    smtp.sendmail(sender_email, email, message)
+                return jsonify({'message': 'Please check your email for the password reset link. It will remain valid for only 3 minutes.'}), 200
+            except Exception as e:
+                print(e)
+                return jsonify({"message": "Failed to send email"}), 500    
+        else :
+            return jsonify({'message': 'User not found'}), 404
+    except Exception as e:
+                print(e)
+                return jsonify({"message": "Failed to send reset link, Somthing went wrong"}), 500    
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+    
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
+    conn = get_db_connection()
+    cur = conn.cursor() 
+    
+    try:
+        data = request.json
+        token = data['token']
+        new_password = data['new_password']
+        role = data['role']
+        decoded = decode_token(token, csrf_value= None, allow_expired = True)
+        email = decoded['email']
+        hashed_password =  pwd_context.hash(new_password)
+        database = "user_candidate"
+        if role=="candidate":
+            database = 'user_candidate'
+        elif role=="HR":
+            database = 'user_hr'
+        query = f"UPDATE {database} SET password = %s WHERE email = %s"
+        cur.execute(query, (hashed_password, email))  
+        conn.commit()
+        return jsonify({'message': 'Password reset successful'}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token expired'}), 400
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 400
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 @app.route('/api/update-profile-pic', methods=['POST'])
 @jwt_required()
