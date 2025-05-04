@@ -18,13 +18,13 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: job-portal
-      DB_USER: your database username
-      DB_PASSWORD: your database password
+      DB_USER: admin
+      DB_PASSWORD: admin@1234
       JWT_SECRET_KEY: your_secret_key_here
       RESET_SECRET_KEY: your_reset_password_secret_key_here
-      sender_email: your email
-      sender_password: your app password
-      GOOGLE_GENAI_API_KEY: your gemini API key
+      sender_email: alinabagwan57@gmail.com
+      sender_password: wwwk cqng hqrc faom
+      GOOGLE_GENAI_API_KEY: AIzaSyBN2ayJ-0ZH8NCnR5hHinNWZhV1VdGHxNc
     depends_on:
       - db
 
@@ -32,8 +32,8 @@ services:
     image: postgres:15
     environment:
       POSTGRES_DB: job-portal
-      POSTGRES_USER: your database username
-      POSTGRES_PASSWORD: your database password
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin@1234
     ports:
       - "5432:5432"
     volumes:
